@@ -415,7 +415,7 @@ eventsEl.innerHTML = EVENTS_SORTED.map((ev, idx) => {
   <article class="event" data-event="${ev.id}">
     <div class="event-orbit" data-event="${ev.id}" role="button" tabindex="0" aria-label="Open ${ev.title} photos">
       <div class="ev-path"></div><div class="ev-path p2"></div>
-      <div class="event-core"><span class="mono">${String(idx + 1).padStart(2, "0")} / ${String(PROFILE.events.length).padStart(2, "0")}</span><b>${ev.short || ev.title}</b><span class="mono enter">Enter →</span></div>
+      <div class="event-core"><span class="mono">${String(idx + 1).padStart(2, "0")} / ${String(PROFILE.events.length).padStart(2, "0")}</span><b>${ev.short || ev.title}</b><span class="mono enter">View →</span></div>
       ${photos.map((src, i) => `<figure class="orbit-photo">${src ? `<img src="${src}" alt="${ev.title} photo ${i + 1}" loading="lazy">` : placeholder(`Photo ${String(i + 1).padStart(2, "0")}`)}</figure>`).join("")}
     </div>
     <div class="event-info">
@@ -423,7 +423,7 @@ eventsEl.innerHTML = EVENTS_SORTED.map((ev, idx) => {
       <h3>${ev.title}</h3>
       <div class="event-meta mono"><span><b>${String(photos.length).padStart(2, "0")}</b>Photos</span><span><b class="venue">${ev.venue}</b>Venue</span></div>
       <p>${ev.text}</p>
-      <button class="btn btn-ghost magnetic" data-open-event="${ev.id}"><span>Enter the event →</span></button>
+      <button class="btn btn-ghost magnetic" data-open-event="${ev.id}"><span>View gallery →</span></button>
     </div>
   </article>`;
 }).join("");
