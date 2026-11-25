@@ -90,8 +90,34 @@ document.addEventListener("click", (e) => {
   if (!a) return;
   e.preventDefault();
   if (a.hasAttribute("data-close")) closeCard();
+  if (menuOpen) toggleMenu(false);
   scrollToTarget(a.getAttribute("href"));
 });
+
+/* ---------- phone menu ---------- */
+const burger = $("#navBurger"), mnav = $("#mnav");
+let menuOpen = false;
+function toggleMenu(open = !menuOpen) {
+  menuOpen = open;
+  burger.setAttribute("aria-expanded", String(open));
+  burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  mnav.setAttribute("aria-hidden", String(!open));
+  if (open) {
+    if (lenis) lenis.stop();
+    gsap.timeline()
+      .set(mnav, { visibility: "visible" })
+      .to(mnav, { clipPath: "circle(150% at calc(100% - 40px) 40px)", duration: 0.9, ease: "expo.inOut" })
+      .fromTo(".mnav li a", { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.05, ease: "expo.out" }, 0.35)
+      .fromTo(".mnav-foot", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6 }, 0.6);
+  } else {
+    if (lenis && !cardOpen && !evOpen) lenis.start(); // start now so a menu link can scroll straight away
+    gsap.to(mnav, { clipPath: "circle(0% at calc(100% - 40px) 40px)", duration: 0.7, ease: "expo.inOut",
+      onComplete: () => gsap.set(mnav, { visibility: "hidden" }) });
+  }
+}
+burger.addEventListener("click", () => toggleMenu());
+addEventListener("keydown", (e) => { if (e.key === "Escape" && menuOpen) toggleMenu(false); });
+addEventListener("resize", () => { if (menuOpen && innerWidth > 960) toggleMenu(false); });
 
 const placeholder = (label) => `<div class="ph mono"><span>${label}</span></div>`;
 
@@ -538,6 +564,7 @@ function runIntro() {
     const y = +params.get("y");
     if (y) setTimeout(() => (lenis ? lenis.scrollTo(y, { immediate: true }) : scrollTo(0, y)), 400);
     if (params.get("event")) setTimeout(() => openEvent(params.get("event")), 500); // preview helper: ?nointro&event=nasa
+    if (params.has("menu")) setTimeout(() => toggleMenu(true), 500); // preview helper: ?nointro&menu
     return;
   }
   gsap.timeline()

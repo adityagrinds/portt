@@ -44,7 +44,24 @@
       <li><a href="#moments">Events</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    <button class="nav-burger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><span></span><span></span></button>
   </nav>
+
+  <!-- phone menu -->
+  <div class="mnav" id="mnav" aria-hidden="true">
+    <ol>
+      <li><a href="#about"><i class="mono">01</i>About</a></li>
+      <li><a href="#journey"><i class="mono">02</i>Journey</a></li>
+      <li><a href="#toolkit"><i class="mono">03</i>Toolkit</a></li>
+      <li><a href="#projects"><i class="mono">04</i>Work</a></li>
+      <li><a href="#moments"><i class="mono">05</i>Events</a></li>
+      <li><a href="#contact"><i class="mono">06</i>Contact</a></li>
+    </ol>
+    <div class="mnav-foot mono">
+      <a href="https://www.linkedin.com/in/angel-chugh-982197373/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a href="https://github.com/angelchugh" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
 
 
   <main>
@@ -84,7 +101,7 @@
           <span class="tag mono t1"><i></i>Google Student Ambassador</span>
           <span class="tag mono t2"><i></i>VisionX — 1st Prize</span>
           <span class="tag mono t3"><i></i>NASA Space Apps '25</span>
-          <span class="tap-hint mono">View profile <b></b></span>
+          <span class="tap-hint mono"><span class="on-mouse">View profile</span><span class="on-touch">Tap photo for profile</span> <b></b></span>
         </div>
       </div>
       <a href="#about" class="scroll-cue" aria-label="Scroll down"><span></span></a>
@@ -201,7 +218,7 @@
         <div class="cyl-floor" aria-hidden="true"></div>
         <div class="cyl" id="cyl"></div>
       </div>
-      <p class="cyl-hint mono">Drag to spin · Hover to slow</p>
+      <p class="cyl-hint mono"><span class="on-mouse">Drag to spin · Hover to slow</span><span class="on-touch">Swipe to spin</span></p>
       <!-- skills drifting in two directions -->
       <div class="skill-rows" id="skillRows"></div>
     </section>

@@ -7,6 +7,15 @@
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (window.Scene3D) Scene3D.intro();
+
+  /* wide tables on phones: show a fade + "swipe" hint until scrolled to the end */
+  const markTables = () => $$(".tbl-wrap").forEach((w) => {
+    w.classList.toggle("scrolls", w.scrollWidth > w.clientWidth + 2);
+    w.classList.toggle("at-end", w.scrollLeft + w.clientWidth >= w.scrollWidth - 4);
+  });
+  markTables();
+  addEventListener("resize", markTables);
+  $$(".tbl-wrap").forEach((w) => w.addEventListener("scroll", markTables, { passive: true }));
   if (!window.gsap) { document.body.classList.add("no-anim"); return; } // still fully readable without animation
   gsap.registerPlugin(ScrollTrigger);
   // preview helper for tall screenshots: soilsight.html?tall
