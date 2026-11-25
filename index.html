@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en" data-theme="noir">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Angel Chugh — Portfolio</title>
+  <meta name="description" content="Angel Chugh — B.Tech CSE at Manav Rachna University, Google Student Ambassador and VisionX hackathon winner." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23121214'/><text x='50' y='66' font-family='Georgia' font-style='italic' font-size='46' text-anchor='middle' fill='%23f2f1ee'>ac</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="is-loading">
+
+  <!-- ============ INTRO ============ -->
+  <div id="intro" aria-hidden="true">
+    <h2 class="intro-name" aria-label="Angel Chugh">
+      <span class="in-line"><span class="in-word">Angel</span></span>
+      <span class="in-line"><span class="in-word italic">Chugh</span></span>
+    </h2>
+    <p class="intro-label mono"><span>B.Tech CSE</span><span>·</span><span>Portfolio 2026</span></p>
+    <div class="intro-line"><span></span></div>
+  </div>
+
+  <!-- ============ BACKGROUND ============ -->
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <canvas id="bg3d" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ============ CURSOR ============ -->
+  <canvas id="trail" aria-hidden="true"></canvas>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <!-- ============ PROGRESS + NAV ============ -->
+  <div class="progress"><span></span></div>
+  <nav class="nav">
+    <a href="#home" class="nav-logo" aria-label="Home">ac<span>.</span></a>
+    <ul>
+      <li><a href="#about">About</a></li>
+      <li><a href="#journey">Journey</a></li>
+      <li><a href="#toolkit">Toolkit</a></li>
+      <li><a href="#projects">Work</a></li>
+      <li><a href="#moments">Events</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="home">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <p class="eyebrow mono reveal-up"><span class="dot"></span> Open to internships · 2026</p>
+          <h1 class="hero-name" aria-label="Angel Chugh">
+            <span class="line"><span class="split">Angel</span></span>
+            <span class="line"><span class="split italic">Chugh</span></span>
+          </h1>
+          <p class="hero-role reveal-up">B.Tech Computer Science &amp; Engineering · Manav Rachna University</p>
+          <p class="hero-tag reveal-up">
+            <span class="chip mono"><i></i>Google Student Ambassador</span>
+            <span class="chip mono"><i></i>VisionX — 1st Prize</span>
+            <span class="chip mono"><i></i>NASA Space Apps Innovator</span>
+          </p>
+          <p class="hero-copy reveal-up">I build thoughtful, people-first technology — and I enjoy turning a 24-hour idea into something that actually works.</p>
+          <div class="hero-cta reveal-up">
+            <a href="#projects" class="btn btn-primary magnetic"><span>See my work</span></a>
+            <a href="#contact" class="btn btn-ghost magnetic"><span>Get in touch</span></a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <svg class="hero-orbits" viewBox="0 0 400 500" aria-hidden="true">
+            <ellipse cx="200" cy="250" rx="190" ry="235" />
+            <ellipse cx="200" cy="250" rx="160" ry="205" stroke-dasharray="3 6" />
+            <circle class="o-dot" r="3.5"><animateMotion dur="24s" repeatCount="indefinite" path="M200,15 a190,235 0 1,1 -0.1,0" /></circle>
+          </svg>
+          <div class="arch"><div class="arch-grid"></div><div class="arch-glow"></div></div>
+          <button class="portrait" id="portrait" aria-label="Open Angel's profile card">
+            <span class="portrait-clip"><img class="cutout" src="assets/angel-cutout.png" alt="Angel Chugh" /></span>
+          </button>
+          <span class="tag mono t1"><i></i>Google Student Ambassador</span>
+          <span class="tag mono t2"><i></i>VisionX — 1st Prize</span>
+          <span class="tag mono t3"><i></i>NASA Space Apps '25</span>
+          <span class="tap-hint mono">View profile <b></b></span>
+        </div>
+      </div>
+      <a href="#about" class="scroll-cue" aria-label="Scroll down"><span></span></a>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Google Student Ambassador 2026</span><i>●</i><span>VisionX — 1st Prize</span><i>●</i><span>NASA Space Apps 2025</span><i>●</i><span>AWS Builder Center</span><i>●</i><span>Tryst'26, IIT Delhi</span><i>●</i>
+        <span>Google Student Ambassador 2026</span><i>●</i><span>VisionX — 1st Prize</span><i>●</i><span>NASA Space Apps 2025</span><i>●</i><span>AWS Builder Center</span><i>●</i><span>Tryst'26, IIT Delhi</span><i>●</i>
+      </div>
+    </div>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about">
+      <div class="section-head">
+        <span class="kicker mono">01 — About</span>
+        <h2 class="title split-words">A curious mind with a <em>quiet</em> love for building.</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-copy glass tilt">
+          <p>I'm Angel, a second-year <strong>Computer Science &amp; Engineering</strong> student at <strong>Manav Rachna University</strong>. I enjoy the whole journey of an idea — the whiteboard chaos, the late-night debugging, and the moment it finally clicks.</p>
+          <p>As a <strong>Google Student Ambassador</strong>, I help bring students closer to technology and to each other. At the <strong>VisionX hackathon</strong>, hosted at the GeeksforGeeks office, my team and I took 1st prize.</p>
+          <p>I've built through 30 hours at the <strong>NASA Space Apps Challenge</strong>, learned at <strong>AWS Builder Center</strong> and <strong>Tryst'26, IIT Delhi</strong> — and I volunteer teaching children in Rohtak.</p>
+        </div>
+        <div class="stats">
+          <div class="stat glass tilt"><b>#1</b><span class="mono">VisionX Hackathon</span></div>
+          <div class="stat glass tilt"><b>GSA</b><span class="mono">Google Student Ambassador ’26</span></div>
+          <div class="stat glass tilt"><b>30h</b><span class="mono">NASA Space Apps hackathon</span></div>
+          <div class="stat glass tilt"><b>06</b><span class="mono">Events &amp; milestones</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ JOURNEY ============ -->
+    <section class="section journey" id="journey">
+      <div class="section-head">
+        <span class="kicker mono">02 — Journey</span>
+        <h2 class="title split-words">Milestones, <em>so far</em>.</h2>
+      </div>
+      <div class="timeline">
+        <div class="tl-line"><span></span></div>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">i.</span>
+            <span class="tl-tag mono">Hackathon · 1st Prize</span>
+            <h3>VisionX Hackathon — GeeksforGeeks</h3>
+            <p>Took 1st prize with my team at VisionX, hosted at the GeeksforGeeks office — a sprint of ideas, teamwork and code, shipped under the clock.</p>
+            <button class="link-btn mono" data-open-event="visionx">View event photos →</button>
+          </div>
+        </article>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">ii.</span>
+            <span class="tl-tag mono">Hackathon · Oct 2025</span>
+            <h3>NASA Space Apps Challenge — Noida</h3>
+            <p>A 30-hour hackathon on NASA's open data at Manav Rachna, building with a team of six as an Innovator.</p>
+            <button class="link-btn mono" data-open-event="nasa">View event photos →</button>
+          </div>
+        </article>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">iii.</span>
+            <span class="tl-tag mono">Community · Leadership · 2026</span>
+            <h3>Google Student Ambassador</h3>
+            <p>Part of Google's Gemini Student Ambassador Program 2026 — leading AI workshops on campus and helping peers discover what they can build.</p>
+            <button class="link-btn mono" data-open-event="gsa">View event photos →</button>
+          </div>
+        </article>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">iv.</span>
+            <span class="tl-tag mono">Tech Fest · Feb–Mar 2026</span>
+            <h3>Tryst'26 — IIT Delhi</h3>
+            <p>Completed the Generative AI workshop at IIT Delhi's technical fest, “Innovating for a Sustainable Future”.</p>
+            <button class="link-btn mono" data-open-event="tryst">View event photos →</button>
+          </div>
+        </article>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">v.</span>
+            <span class="tl-tag mono">Developer Event · AWS</span>
+            <h3>AWS Builder Center: Future Builders Connect</h3>
+            <p>Learn. Build. Connect. — panels with AWS builders, hands-on activity zones and a day with people who love to build.</p>
+            <button class="link-btn mono" data-open-event="aws">View event photos →</button>
+          </div>
+        </article>
+        <article class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass tilt">
+            <span class="tl-num">vi.</span>
+            <span class="tl-tag mono">Volunteering · 2026</span>
+            <h3>Teaching &amp; Community — Rohtak</h3>
+            <p>Running learning sessions with children — because learning means more when it's shared.</p>
+            <button class="link-btn mono" data-open-event="community">View photos →</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ TOOLKIT ============ -->
+    <section class="section toolkit" id="toolkit">
+      <div class="section-head">
+        <span class="kicker mono">03 — Toolkit</span>
+        <h2 class="title split-words">The stack &amp; the <em>skills</em>.</h2>
+      </div>
+      <!-- 3D carousel of tech cards -->
+      <div class="cyl-stage" id="cylStage" aria-label="Technologies">
+        <div class="cyl-floor" aria-hidden="true"></div>
+        <div class="cyl" id="cyl"></div>
+      </div>
+      <p class="cyl-hint mono">Drag to spin · Hover to slow</p>
+      <!-- skills drifting in two directions -->
+      <div class="skill-rows" id="skillRows"></div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section class="section projects" id="projects">
+      <div class="section-head">
+        <span class="kicker mono">04 — Work</span>
+        <h2 class="title split-words">Selected <em>projects</em>.</h2>
+      </div>
+      <div class="project-grid" id="projectGrid"></div>
+    </section>
+
+    <!-- ============ EVENTS ============ -->
+    <section class="section moments" id="moments">
+      <div class="section-head">
+        <span class="kicker mono">05 — Events</span>
+        <h2 class="title split-words">Moments, <em>in orbit</em>.</h2>
+      </div>
+      <div class="events" id="events"></div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section contact" id="contact">
+      <div class="contact-card glass">
+        <span class="kicker mono">06 — Contact</span>
+        <h2 class="contact-title split-words">Let's build something <em>meaningful</em> together.</h2>
+        <p>Open to internships, collaborations, hackathon teams and good conversations.</p>
+        <div class="contact-links">
+          <a class="btn btn-primary magnetic" href="mailto:hello@example.com"><span>Email me</span></a>
+          <a class="btn btn-ghost magnetic" href="https://www.linkedin.com/in/angel-chugh-982197373/" target="_blank" rel="noopener"><span>LinkedIn</span></a>
+          <a class="btn btn-ghost magnetic" href="https://github.com/angelchugh" target="_blank" rel="noopener"><span>GitHub</span></a>
+        </div>
+      </div>
+      <footer class="footer mono"><span>© <span id="year"></span> Angel Chugh</span><span>Designed &amp; built with care</span></footer>
+    </section>
+  </main>
+
+  <!-- ============ PROFILE CARD ============ -->
+  <div class="card-overlay" id="cardOverlay" aria-hidden="true">
+    <div class="pcard" id="pcard" role="dialog" aria-modal="true" aria-labelledby="pcName">
+      <div class="pcard-border"></div>
+      <div class="pcard-glare"></div>
+      <div class="pcard-media">
+        <span class="mono">Profile · No. 001</span>
+        <img src="assets/angel-cutout.png" alt="" />
+        <span class="sig">Angel</span>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-top mono"><span>Student · Builder · Leader</span><button class="pc-close" id="pcClose" aria-label="Close">×</button></div>
+        <h3 id="pcName">Angel <em>Chugh</em></h3>
+        <p class="role mono">B.Tech CSE · Manav Rachna University</p>
+        <p class="pc-brief">A second-year Computer Science student who loves building with a team, learning out loud, and helping others get into tech.</p>
+        <dl class="pc-facts">
+          <div><dt class="mono">Year</dt><dd>2nd Year, B.Tech CSE</dd></div>
+          <div><dt class="mono">Role</dt><dd>Google Student Ambassador 2026</dd></div>
+          <div><dt class="mono">Award</dt><dd>1st Prize — VisionX Hackathon, GeeksforGeeks</dd></div>
+          <div><dt class="mono">Built at</dt><dd>NASA Space Apps Challenge 2025 · Innovator</dd></div>
+          <div><dt class="mono">Events</dt><dd>AWS Builder Center · Tryst'26, IIT Delhi</dd></div>
+        </dl>
+        <span class="status"><i></i> Open to internships &amp; collaborations</span>
+        <div class="pc-actions">
+          <a href="#contact" class="btn btn-primary" data-close><span>Contact</span></a>
+          <a href="#journey" class="btn btn-ghost" data-close><span>Journey</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EVENT GALLERY ============ -->
+  <div class="event-view" id="eventView" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ev-head">
+      <div><span class="mono ev-kicker"></span><h3 class="ev-title"></h3></div>
+      <div class="ev-right"><span class="mono ev-count"></span><button class="ev-close" id="evClose">Close ✕</button></div>
+    </div>
+    <div class="ev-stage">
+      <button class="ev-nav ev-prev" aria-label="Previous photo">←</button>
+      <div class="ev-slides"></div>
+      <button class="ev-nav ev-next" aria-label="Next photo">→</button>
+    </div>
+    <div class="ev-foot"><p class="ev-desc"></p><div class="ev-thumbs"></div></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="scene.js"></script>
+  <script>
+    // safety net: if the animation library didn't load, show the page anyway
+    if (!window.gsap) {
+      document.getElementById("intro").remove();
+      document.body.classList.remove("is-loading");
+      document.documentElement.classList.add("no-js-anim");
+    } else {
+      var s = document.createElement("script"); s.src = "main.js"; document.body.appendChild(s);
+    }
+  </script>
+</body>
+</html>

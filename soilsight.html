@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en" data-theme="noir">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoilSight AI — Case Study · Angel Chugh</title>
+  <meta name="description" content="SoilSight AI: cross-region soil moisture estimation from satellite data, evaluated with leave-one-region-out validation across three continents." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23121214'/><text x='50' y='66' font-family='Georgia' font-style='italic' font-size='46' text-anchor='middle' fill='%23f2f1ee'>ac</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="soilsight.css" />
+</head>
+<body class="cs">
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <canvas id="bg3d" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="progress"><span></span></div>
+
+  <!-- top bar -->
+  <header class="cs-bar">
+    <a href="index.html#projects" class="cs-back mono">← Portfolio</a>
+    <span class="cs-bar-title mono">SoilSight AI · Case Study</span>
+    <a href="#poster" class="cs-bar-link mono">Poster ↓</a>
+  </header>
+
+  <!-- ============ COVER ============ -->
+  <section class="cs-cover">
+    <div class="cs-cover-img"><img src="assets/soilsight/cover.jpg" alt="SoilSight AI concept: a satellite scanning farmland while a handheld soil sensor reads moisture" /></div>
+    <div class="cs-cover-shade"></div>
+    <div class="cs-cover-text">
+      <span class="kicker mono">Machine Learning · Remote Sensing · Case Study</span>
+      <h1 class="cs-title"><span class="ln"><span>SoilSight</span></span> <span class="ln"><span><em>AI</em></span></span></h1>
+      <p class="cs-sub">Estimating topsoil moisture on a continent the model has <em>never seen</em> — from satellites alone, with no local sensor calibration.</p>
+      <dl class="cs-meta">
+        <div><dt class="mono">Author</dt><dd>Angel Chugh</dd></div>
+        <div><dt class="mono">Type</dt><dd>Supervised regression + classification</dd></div>
+        <div><dt class="mono">Validation</dt><dd>Leave-One-Region-Out (3 continents)</dd></div>
+        <div><dt class="mono">Institution</dt><dd>Dept. of CSE, Manav Rachna University</dd></div>
+      </dl>
+    </div>
+    <a href="#overview" class="scroll-cue" aria-label="Start reading"><span></span></a>
+  </section>
+
+  <!-- ============ KEY NUMBERS ============ -->
+  <section class="cs-stats">
+    <div class="cs-stat"><b data-count="22580">0</b><span class="mono">Satellite–sensor records</span></div>
+    <div class="cs-stat"><b data-count="147">0</b><span class="mono">ISMN ground stations</span></div>
+    <div class="cs-stat"><b data-count="11">0</b><span class="mono">Multi-modal features</span></div>
+    <div class="cs-stat"><b data-count="9">0</b><span class="mono">Regressors + ensembles</span></div>
+    <div class="cs-stat"><b data-count="0.0857" data-dec="4">0</b><span class="mono">Best LORO RMSE (m³/m³)</span></div>
+  </section>
+
+  <div class="cs-layout">
+    <!-- table of contents -->
+    <nav class="cs-toc" aria-label="Contents">
+      <span class="mono">Contents</span>
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#pipeline">Pipeline</a></li>
+        <li><a href="#data">Dataset</a></li>
+        <li><a href="#preprocessing">Preprocessing</a></li>
+        <li><a href="#loro">LORO &amp; SMOTE</a></li>
+        <li><a href="#features">Feature analysis</a></li>
+        <li><a href="#regression">Regression models</a></li>
+        <li><a href="#classification">Irrigation classes</a></li>
+        <li><a href="#tuning">Tuning</a></li>
+        <li><a href="#ensembles">Ensembles</a></li>
+        <li><a href="#explain">Explainability</a></li>
+        <li><a href="#conclusions">Conclusions</a></li>
+        <li><a href="#poster">Poster</a></li>
+      </ol>
+    </nav>
+
+    <article class="cs-body">
+
+      <!-- 01 OVERVIEW -->
+      <section class="cs-sec" id="overview">
+        <span class="cs-num mono">01 — Overview</span>
+        <h2>The problem</h2>
+        <p class="lead">Soil moisture decides when a field needs water. Ground sensors measure it precisely — but only at one spot, and they are expensive to install and calibrate. <strong>SoilSight AI</strong> asks a harder question: <em>can a model trained on satellites in some continents predict topsoil moisture in a continent it has never seen?</em></p>
+        <p>The project frames this as a <strong>supervised regression</strong> problem: predict volumetric soil moisture <code>sm</code> (m³/m³ at 5 cm depth) from 11 satellite, climate, terrain and soil-texture features. It then turns the prediction into three actionable irrigation regimes — <strong>Dry</strong>, <strong>Optimal</strong> and <strong>Wet</strong> — as a classification task.</p>
+        <div class="cs-cards three">
+          <div class="cs-card"><span class="mono">Goal</span><b>Predict <code>sm</code> without local calibration</b><p>Volumetric soil moisture at 5 cm depth, in m³/m³.</p></div>
+          <div class="cs-card"><span class="mono">Hard part</span><b>Generalise across continents</b><p>Every model is tested on a continent held out of training.</p></div>
+          <div class="cs-card"><span class="mono">Impact</span><b>SDG 2 &amp; SDG 13</b><p>Zero Hunger through precision irrigation; Climate Action through water-aware farming.</p></div>
+        </div>
+        <div class="cs-stack">
+          <span class="mono">Built with</span>
+          <ul><li>Python</li><li>Google Colab</li><li>Google Earth Engine</li><li>pandas</li><li>NumPy</li><li>scikit-learn</li><li>imbalanced-learn (SMOTE)</li><li>matplotlib</li><li>seaborn</li></ul>
+        </div>
+      </section>
+
+      <!-- 02 PIPELINE -->
+      <section class="cs-sec" id="pipeline">
+        <span class="cs-num mono">02 — Pipeline</span>
+        <h2>From orbit to prediction</h2>
+        <p>One shared preprocessing pipeline feeds every model, so comparisons are fair. Scaling and SMOTE live <em>inside</em> the cross-validation loop to prevent leakage.</p>
+        <ol class="pipe">
+          <li><i>1</i><b>Load</b><span>ISMN + Earth Engine data · 22,580 rows</span></li>
+          <li><i>2</i><b>Impute</b><span>Station-wise medians for cloud-masked NDVI/NDMI</span></li>
+          <li><i>3</i><b>Outlier cap</b><span>3×IQR winsorization, physical bounds on target</span></li>
+          <li><i>4</i><b>Scale</b><span>StandardScaler inside pipelines</span></li>
+          <li><i>5</i><b>LORO split</b><span>Train on 2 continents, test on the 3rd</span></li>
+          <li><i>6</i><b>SMOTE</b><span>Balance classes on training folds only</span></li>
+          <li><i>7</i><b>Model &amp; ensemble</b><span>7 regressors · 5 classifiers · Voting &amp; Stacking</span></li>
+        </ol>
+      </section>
+
+      <!-- 03 DATA -->
+      <section class="cs-sec" id="data">
+        <span class="cs-num mono">03 — Dataset</span>
+        <h2>Six data sources, one table</h2>
+        <p>In-situ soil moisture readings from the <strong>International Soil Moisture Network (ISMN)</strong> at 5 cm depth were matched with satellite and climate features from <strong>Google Earth Engine</strong> across <strong>147 stations</strong>, within a <strong>±90-minute</strong> satellite overpass window. The merged table has <strong>22,580 rows × 18 columns</strong>.</p>
+        <div class="sources">
+          <div class="src"><span class="mono">Sentinel-1</span><b>C-band SAR radar</b><p>VV, VH backscatter and VV−VH difference</p></div>
+          <div class="src"><span class="mono">Sentinel-2</span><b>Optical</b><p>NDVI vegetation and NDMI moisture indices</p></div>
+          <div class="src"><span class="mono">ERA5-Land</span><b>Climate</b><p>7-day and 30-day cumulative rainfall</p></div>
+          <div class="src"><span class="mono">SRTM</span><b>Terrain</b><p>Elevation and slope</p></div>
+          <div class="src"><span class="mono">SoilGrids</span><b>Soil texture</b><p>Topsoil clay and sand fractions</p></div>
+          <div class="src accent"><span class="mono">ISMN</span><b>Ground truth</b><p>In-situ soil moisture — the target <code>sm</code></p></div>
+        </div>
+
+        <h3>Feature dictionary</h3>
+        <div class="tbl-wrap">
+          <table class="dtable">
+            <thead><tr><th>Feature</th><th>Description</th><th>Range</th></tr></thead>
+            <tbody>
+              <tr><td><code>vv</code></td><td>Sentinel-1 C-band SAR VV backscatter</td><td>−21.47 – 0.22 dB</td></tr>
+              <tr><td><code>vh</code></td><td>Sentinel-1 C-band SAR VH backscatter</td><td>−34.59 – 24.07 dB</td></tr>
+              <tr><td><code>vv_vh</code></td><td>SAR polarisation difference (VV − VH)</td><td>−35.92 – 20.76 dB</td></tr>
+              <tr><td><code>ndvi</code></td><td>Sentinel-2 Normalized Difference Vegetation Index</td><td>−0.12 – 0.99</td></tr>
+              <tr><td><code>ndmi</code></td><td>Sentinel-2 Normalized Difference Moisture Index</td><td>−0.47 – 0.79</td></tr>
+              <tr><td><code>precip_7d</code></td><td>ERA5-Land cumulative 7-day precipitation</td><td>0.0 – 302.4 mm</td></tr>
+              <tr><td><code>precip_30d</code></td><td>ERA5-Land cumulative 30-day precipitation</td><td>0.0 – 810.5 mm</td></tr>
+              <tr><td><code>elev</code></td><td>SRTM elevation above sea level</td><td>1.6 – 2761.4 m</td></tr>
+              <tr><td><code>slope</code></td><td>SRTM terrain slope angle</td><td>1.17 – 26.05°</td></tr>
+              <tr><td><code>clay</code></td><td>SoilGrids topsoil (0–5 cm) clay fraction</td><td>19 – 485 g/kg</td></tr>
+              <tr><td><code>sand</code></td><td>SoilGrids topsoil (0–5 cm) sand fraction</td><td>49 – 963 g/kg</td></tr>
+              <tr class="hl"><td><code>sm</code></td><td><b>Target</b> — in-situ volumetric soil moisture</td><td>0.000 – 0.600 m³/m³</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Where the data comes from</h3>
+        <div class="split-bar" role="img" aria-label="Europe 62.17%, Americas 35.96%, Africa 1.87%">
+          <span style="--w:62.17" class="eu"><b>Europe</b><i>14,038 · 62.17%</i></span>
+          <span style="--w:35.96" class="am"><b>Americas</b><i>8,119 · 35.96%</i></span>
+          <span style="--w:1.87" class="af"><b>Africa</b><i>423 · 1.87%</i></span>
+        </div>
+        <p class="note">Africa is tiny — just 423 records. That makes it the hardest and noisiest held-out test, and it is kept in on purpose.</p>
+      </section>
+
+      <!-- 04 PREPROCESSING -->
+      <section class="cs-sec" id="preprocessing">
+        <span class="cs-num mono">04 — Preprocessing</span>
+        <h2>Cleaning without erasing the physics</h2>
+        <div class="cs-cards four">
+          <div class="cs-card num"><b>0</b><p>Duplicate <code>(station_id, timestamp)</code> records found</p></div>
+          <div class="cs-card num"><b>7,612</b><p>Cloud-masked NDVI / NDMI gaps filled with station medians</p></div>
+          <div class="cs-card num"><b>222</b><p>Target readings outside the physical range [0, 0.65] removed</p></div>
+          <div class="cs-card num"><b>22,358</b><p>Clean records after treatment</p></div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtable compact">
+            <thead><tr><th>Feature</th><th>Missing before</th><th>Missing after</th><th>Outliers handled</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><code>vv</code></td><td>88</td><td>0</td><td>7</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>vh</code></td><td>92</td><td>0</td><td>3</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>vv_vh</code></td><td>92</td><td>0</td><td>19</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>ndvi</code></td><td>7,612</td><td>0</td><td>0</td><td>Station-median imputed + 3×IQR clip</td></tr>
+              <tr><td><code>ndmi</code></td><td>7,612</td><td>0</td><td>0</td><td>Station-median imputed + 3×IQR clip</td></tr>
+              <tr><td><code>precip_7d</code></td><td>0</td><td>0</td><td>288</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>precip_30d</code></td><td>0</td><td>0</td><td>78</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>elev</code></td><td>43</td><td>0</td><td>56</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>slope</code></td><td>43</td><td>0</td><td>632</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>clay</code></td><td>87</td><td>0</td><td>0</td><td>3×IQR winsorization</td></tr>
+              <tr><td><code>sand</code></td><td>87</td><td>0</td><td>10</td><td>3×IQR winsorization</td></tr>
+              <tr class="hl"><td><code>sm</code></td><td>0</td><td>0</td><td>222</td><td>Physical bounds [0, 0.65]</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="fig" data-zoom>
+          <img src="assets/soilsight/fig-boxplots.png" alt="Box plots of all standardised features before and after outlier capping" loading="lazy" />
+          <figcaption><span class="mono">Fig. 01</span> Standardised features before (top) and after (bottom) station-median imputation and 3×IQR winsorization. Rainfall and slope lose their extreme spikes; natural variability stays.</figcaption>
+        </figure>
+      </section>
+
+      <!-- 05 LORO + SMOTE -->
+      <section class="cs-sec" id="loro">
+        <span class="cs-num mono">05 — Evaluation design</span>
+        <h2>Leave-One-Region-Out</h2>
+        <p>A random 80/20 split would put readings from the <em>same station</em> in both train and test — the model could memorise local sensor offsets and look far better than it really is. Instead, every model is trained on <strong>two continents</strong> and tested on the <strong>third</strong>, three times over.</p>
+        <div class="loro" aria-label="Three LORO folds">
+          <div class="loro-row"><span class="mono">Fold 1</span><i class="tr">Americas</i><i class="tr">Africa</i><i class="te">Europe</i></div>
+          <div class="loro-row"><span class="mono">Fold 2</span><i class="tr">Europe</i><i class="tr">Africa</i><i class="te">Americas</i></div>
+          <div class="loro-row"><span class="mono">Fold 3</span><i class="tr">Europe</i><i class="tr">Americas</i><i class="te">Africa</i></div>
+          <div class="loro-key mono"><span class="tr">Train</span><span class="te">Test (unseen)</span></div>
+        </div>
+
+        <h3>Balancing the irrigation classes with SMOTE</h3>
+        <p>For classification, moisture is split into <strong>Dry (&lt; 0.15)</strong>, <strong>Optimal (0.15–0.28)</strong> and <strong>Wet (&gt; 0.28 m³/m³)</strong>. <em>Wet</em> is the minority, so SMOTE creates synthetic samples — fitted <strong>only on the training continents</strong>, so no synthetic point ever reaches the held-out continent.</p>
+        <div class="bars" data-max="9522">
+          <div class="bar"><span>Dry</span><div><i style="--v:9522"></i><i class="after" style="--v:9522"></i></div><b>9,522 → 9,522</b></div>
+          <div class="bar"><span>Optimal</span><div><i style="--v:8100"></i><i class="after" style="--v:9522"></i></div><b>8,100 → 9,522</b></div>
+          <div class="bar"><span>Wet</span><div><i style="--v:4736"></i><i class="after" style="--v:9522"></i></div><b>4,736 → 9,522</b></div>
+          <div class="bar-key mono"><span class="b4">Before SMOTE</span><span class="af">After SMOTE (33.3% each)</span></div>
+        </div>
+        <figure class="fig" data-zoom>
+          <img src="assets/soilsight/fig-balance.png" alt="Bar charts: observations by continent, and moisture classes before and after SMOTE" loading="lazy" />
+          <figcaption><span class="mono">Fig. 02</span> Geographic imbalance by continent (left) and moisture classes before (middle) and after SMOTE (right).</figcaption>
+        </figure>
+      </section>
+
+      <!-- 06 FEATURES -->
+      <section class="cs-sec" id="features">
+        <span class="cs-num mono">06 — Feature analysis</span>
+        <h2>What actually carries signal?</h2>
+        <p>Three lenses were used: <strong>Pearson correlation</strong> (linear), <strong>Mutual Information</strong> (non-linear) and the <strong>Chi-square test</strong> (for the 3-class task).</p>
+        <figure class="fig" data-zoom>
+          <img src="assets/soilsight/fig-heatmap.png" alt="Pearson correlation heatmap of all features and soil moisture" loading="lazy" />
+          <figcaption><span class="mono">Fig. 03</span> Pearson correlation heatmap. Against <code>sm</code>, the strongest linear links are <code>precip_30d</code> (0.35), <code>precip_7d</code> (0.31), <code>sand</code> (−0.29), <code>ndmi</code> (0.24) and <code>ndvi</code> (0.22).</figcaption>
+        </figure>
+        <div class="two-col">
+          <figure class="fig" data-zoom>
+            <img src="assets/soilsight/fig-mutual-info.png" alt="Mutual information scores for every feature" loading="lazy" />
+            <figcaption><span class="mono">Fig. 04</span> Mutual Information — soil texture and terrain score highest.</figcaption>
+          </figure>
+          <div class="tbl-wrap">
+            <table class="dtable compact">
+              <thead><tr><th>Feature</th><th>MI</th><th>χ²</th><th>p-value</th></tr></thead>
+              <tbody>
+                <tr><td><code>sand</code></td><td>0.7840</td><td>140.91</td><td>2.5e-31</td></tr>
+                <tr><td><code>elev</code></td><td>0.7785</td><td>85.71</td><td>2.4e-19</td></tr>
+                <tr><td><code>clay</code></td><td>0.7774</td><td>25.72</td><td>2.6e-06</td></tr>
+                <tr><td><code>slope</code></td><td>0.7481</td><td>101.15</td><td>1.1e-22</td></tr>
+                <tr><td><code>ndvi</code></td><td>0.3689</td><td>48.87</td><td>2.4e-11</td></tr>
+                <tr><td><code>ndmi</code></td><td>0.3532</td><td>40.75</td><td>1.4e-09</td></tr>
+                <tr><td><code>precip_30d</code></td><td>0.2052</td><td>299.71</td><td>8.3e-66</td></tr>
+                <tr><td><code>precip_7d</code></td><td>0.1292</td><td>536.97</td><td>2.5e-117</td></tr>
+                <tr class="dim"><td><code>vh</code></td><td>0.0675</td><td>2.37</td><td>0.305</td></tr>
+                <tr class="dim"><td><code>vv</code></td><td>0.0625</td><td>3.78</td><td>0.151</td></tr>
+                <tr><td><code>vv_vh</code></td><td>0.0248</td><td>7.62</td><td>0.022</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="mono">Reading the numbers</span>
+          <p><strong>9 of 11 features are statistically significant</strong> for the irrigation classes (p &lt; 0.05); raw radar <code>vv</code> and <code>vh</code> are not. Static features — sand, elevation, clay, slope — have very high Mutual Information partly because they act like a <em>fingerprint</em> of each station. That is exactly why the evaluation holds out whole continents: it stops the model from scoring well just by recognising places.</p>
+        </div>
+      </section>
+
+      <!-- 07 REGRESSION -->
+      <section class="cs-sec" id="regression">
+        <span class="cs-num mono">07 — Regression models</span>
+        <h2>Seven algorithms, three unseen continents</h2>
+        <p>Each model was scored with the SMAP-standard metrics: <strong>RMSE</strong>, <strong>ubRMSD</strong> (unbiased RMSD), <strong>Bias</strong> and <strong>Pearson R</strong> — averaged over the three LORO folds. Lower RMSE is better.</p>
+        <div class="hbars" data-min="0.08" data-max="0.12">
+          <div class="hb best"><span>Random Forest</span><div><i style="--v:0.0885"></i></div><b>0.0885</b></div>
+          <div class="hb"><span>Ridge Regression</span><div><i style="--v:0.0922"></i></div><b>0.0922</b></div>
+          <div class="hb"><span>SGD Regressor</span><div><i style="--v:0.0924"></i></div><b>0.0924</b></div>
+          <div class="hb"><span>HistGradientBoosting</span><div><i style="--v:0.0944"></i></div><b>0.0944</b></div>
+          <div class="hb"><span>Decision Tree</span><div><i style="--v:0.1030"></i></div><b>0.1030</b></div>
+          <div class="hb"><span>K-Nearest Neighbors</span><div><i style="--v:0.1045"></i></div><b>0.1045</b></div>
+          <div class="hb"><span>Support Vector Regressor</span><div><i style="--v:0.1157"></i></div><b>0.1157</b></div>
+          <span class="hb-axis mono">Mean LORO RMSE (m³/m³) — axis starts at 0.08</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtable">
+            <thead><tr><th>Model</th><th>RMSE</th><th>ubRMSD</th><th>Bias</th><th>Pearson R</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td>Random Forest Regressor</td><td>0.0885</td><td>0.0866</td><td>0.0129</td><td>0.4885</td></tr>
+              <tr><td>Linear Regression (Ridge)</td><td>0.0922</td><td>0.0889</td><td>−0.0094</td><td>0.5014</td></tr>
+              <tr><td>Gradient Descent (SGD)</td><td>0.0924</td><td>0.0892</td><td>−0.0077</td><td>0.5000</td></tr>
+              <tr><td>HistGradientBoosting (HGB)</td><td>0.0944</td><td>0.0884</td><td>0.0222</td><td>0.4729</td></tr>
+              <tr><td>Decision Tree Regressor</td><td>0.1030</td><td>0.1027</td><td>0.0062</td><td>0.3743</td></tr>
+              <tr><td>K-Nearest Neighbors</td><td>0.1045</td><td>0.1009</td><td>0.0075</td><td>0.3147</td></tr>
+              <tr><td>Support Vector Regressor</td><td>0.1157</td><td>0.1137</td><td>0.0010</td><td>0.3449</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="fig" data-zoom>
+          <img src="assets/soilsight/fig-rmse.png" alt="Bar chart of mean LORO RMSE for seven regression models" loading="lazy" />
+          <figcaption><span class="mono">Fig. 05</span> Cross-continent performance: mean LORO RMSE, as produced in the notebook.</figcaption>
+        </figure>
+        <div class="callout">
+          <span class="mono">Takeaway</span>
+          <p><strong>Random Forest</strong> has the lowest error. Simple <strong>Ridge</strong> and <strong>SGD</strong> come very close and even have the highest correlation (R ≈ 0.50), which shows much of the cross-continent signal — rainfall and soil texture — is fairly linear. Single trees, KNN and SVR generalise worst: they lean on local patterns that don't transfer to a new continent.</p>
+        </div>
+      </section>
+
+      <!-- 08 CLASSIFICATION -->
+      <section class="cs-sec" id="classification">
+        <span class="cs-num mono">08 — Irrigation regimes</span>
+        <h2>Dry, Optimal or Wet?</h2>
+        <p>For a farmer, a class is more useful than a decimal. Five classifiers were trained on <strong>Europe + Americas</strong> (with SMOTE on the training data) and tested on the completely unseen <strong>Africa</strong> set.</p>
+        <div class="two-col">
+          <div class="tbl-wrap">
+            <table class="dtable">
+              <thead><tr><th>Classifier</th><th>Accuracy</th><th>Macro F1</th></tr></thead>
+              <tbody>
+                <tr class="hl"><td>Decision Tree</td><td>0.6194</td><td>0.4900</td></tr>
+                <tr><td>Support Vector Machine</td><td>0.6383</td><td>0.4876</td></tr>
+                <tr><td>KNN (k = 15)</td><td>0.5745</td><td>0.4439</td></tr>
+                <tr><td>Random Forest</td><td>0.4728</td><td>0.3930</td></tr>
+                <tr><td>Gaussian Naive Bayes</td><td>0.3972</td><td>0.3271</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figure class="fig" data-zoom>
+            <img src="assets/soilsight/fig-confusion.png" alt="Confusion matrix of the Random Forest classifier tested on Africa" loading="lazy" />
+            <figcaption><span class="mono">Fig. 06</span> Random Forest on Africa (423 samples).</figcaption>
+          </figure>
+        </div>
+        <div class="callout">
+          <span class="mono">Reading the confusion matrix</span>
+          <p><strong>SVM</strong> has the best accuracy (63.8%) and the <strong>Decision Tree</strong> the best macro-F1 (0.49). The matrix shows where things go wrong: <strong>Dry</strong> fields are recognised well (129 of 211), while many <strong>Optimal</strong> readings are predicted as <strong>Wet</strong> (128 of 208) — the model, trained on wetter European and American sites, leans wet on Africa. Africa has only 4 truly Wet samples, so the Wet score there is not reliable. Naive Bayes is weakest because it assumes features are independent, which rainfall and radar clearly aren't.</p>
+        </div>
+      </section>
+
+      <!-- 09 TUNING -->
+      <section class="cs-sec" id="tuning">
+        <span class="cs-num mono">09 — Hyperparameter tuning</span>
+        <h2>Tuning without spatial leakage</h2>
+        <p>Normal cross-validation shuffles rows, so one sensor's readings end up on both sides of the split. <strong>GroupKFold (5 splits, grouped by <code>station_id</code>)</strong> keeps every station whole, and <strong>RandomizedSearchCV</strong> searched for the lowest RMSE.</p>
+        <div class="tbl-wrap">
+          <table class="dtable">
+            <thead><tr><th>Model</th><th>Best hyperparameters</th><th>Best CV RMSE</th></tr></thead>
+            <tbody>
+              <tr><td>HistGradientBoosting</td><td><code>min_samples_leaf=50 · max_iter=200 · learning_rate=0.05 · l2_regularization=0.0</code></td><td>0.1028</td></tr>
+              <tr><td>Random Forest</td><td><code>n_estimators=150 · min_samples_leaf=20 · max_depth=14</code></td><td>0.1076</td></tr>
+              <tr class="hl"><td>Ridge Regression</td><td><code>alpha=500.0</code></td><td>0.1018</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">The search consistently chose strong regularisation — large leaves, shallow-ish trees, a large Ridge penalty — which is what you want when the goal is to generalise to stations the model has never seen.</p>
+      </section>
+
+      <!-- 10 ENSEMBLES -->
+      <section class="cs-sec" id="ensembles">
+        <span class="cs-num mono">10 — Ensembles</span>
+        <h2>Better together</h2>
+        <p>The tuned models were combined two ways: a <strong>Voting Regressor</strong> (averages HGB + Random Forest + Ridge) and a <strong>Stacking Regressor</strong> (a Ridge meta-learner that learns how much to trust each base model).</p>
+        <div class="podium">
+          <div class="pod"><span class="mono">Best single model</span><b>Tuned HGB</b><dl><div><dt>RMSE</dt><dd>0.0929</dd></div><div><dt>Bias</dt><dd>0.0205</dd></div><div><dt>R</dt><dd>0.4871</dd></div></dl></div>
+          <div class="pod win"><span class="mono">★ Best overall</span><b>Voting Ensemble</b><dl><div><dt>RMSE</dt><dd>0.0857</dd></div><div><dt>Bias</dt><dd>0.0080</dd></div><div><dt>R</dt><dd>0.5347</dd></div></dl></div>
+          <div class="pod"><span class="mono">Meta-learner</span><b>Stacking (Ridge)</b><dl><div><dt>RMSE</dt><dd>0.0894</dd></div><div><dt>Bias</dt><dd>0.0172</dd></div><div><dt>R</dt><dd>0.4987</dd></div></dl></div>
+        </div>
+        <p>The <strong>Voting Ensemble</strong> wins on every metric: the lowest error of the whole project (<strong>0.0857 m³/m³</strong>), the smallest bias and the highest correlation (<strong>R = 0.535</strong>). Averaging a tree ensemble with a linear model cancels out their different mistakes.</p>
+        <figure class="fig" data-zoom>
+          <img src="assets/soilsight/fig-actual-vs-pred.png" alt="Scatter plot of actual versus predicted soil moisture across all LORO folds" loading="lazy" />
+          <figcaption><span class="mono">Fig. 07</span> Stacking Ensemble: actual vs predicted soil moisture across all three held-out continents. Predictions follow the 1:1 trend but are compressed into roughly 0.10–0.30 m³/m³ — very wet soils are under-predicted, very dry ones over-predicted.</figcaption>
+        </figure>
+      </section>
+
+      <!-- 11 EXPLAINABILITY -->
+      <section class="cs-sec" id="explain">
+        <span class="cs-num mono">11 — Explainability</span>
+        <h2>Did the model learn real physics?</h2>
+        <div class="two-col">
+          <figure class="fig" data-zoom>
+            <img src="assets/soilsight/fig-importance.png" alt="Feature importance from the optimised Random Forest regressor" loading="lazy" />
+            <figcaption><span class="mono">Fig. 08</span> Feature importance from the optimised Random Forest.</figcaption>
+          </figure>
+          <div class="imp">
+            <div class="imp-row"><span>sand</span><div><i style="--v:0.277"></i></div></div>
+            <div class="imp-row"><span>precip_30d</span><div><i style="--v:0.205"></i></div></div>
+            <div class="imp-row"><span>clay</span><div><i style="--v:0.135"></i></div></div>
+            <div class="imp-row"><span>ndmi</span><div><i style="--v:0.082"></i></div></div>
+            <div class="imp-row"><span>elev</span><div><i style="--v:0.075"></i></div></div>
+            <div class="imp-row"><span>slope</span><div><i style="--v:0.073"></i></div></div>
+            <div class="imp-row"><span>vv</span><div><i style="--v:0.048"></i></div></div>
+            <div class="imp-row"><span>precip_7d</span><div><i style="--v:0.045"></i></div></div>
+            <div class="imp-row"><span>vv_vh</span><div><i style="--v:0.025"></i></div></div>
+            <div class="imp-row"><span>ndvi</span><div><i style="--v:0.022"></i></div></div>
+            <div class="imp-row"><span>vh</span><div><i style="--v:0.015"></i></div></div>
+          </div>
+        </div>
+        <div class="callout">
+          <span class="mono">Why this makes sense</span>
+          <p>The top three — <strong>sand</strong>, <strong>30-day rainfall</strong> and <strong>clay</strong> — match hydrology. The sand/clay ratio sets how much water soil can hold, and a month of rain sets the baseline wetness. Instantaneous radar (<code>vh</code>, <code>vv_vh</code>) and <code>ndvi</code> matter least: the model trusts slow-changing soil and climate signals more than a single day's satellite reflection.</p>
+        </div>
+      </section>
+
+      <!-- 12 CONCLUSIONS -->
+      <section class="cs-sec" id="conclusions">
+        <span class="cs-num mono">12 — Conclusions</span>
+        <h2>What SoilSight AI shows</h2>
+        <div class="findings">
+          <div class="find"><span class="mono">01</span><b>Satellites can transfer across continents</b><p>Trained on two continents, the Voting Ensemble predicts the third with an RMSE of 0.0857 m³/m³ — with no local sensor calibration.</p></div>
+          <div class="find"><span class="mono">02</span><b>Ensembles beat single models</b><p>Voting improved on the best single tuned model (HGB) by 7.7% in RMSE and raised correlation from 0.487 to 0.535.</p></div>
+          <div class="find"><span class="mono">03</span><b>Soil texture + rainfall drive moisture</b><p>Sand, 30-day rainfall and clay carry most of the predictive power — consistent with hydrological physics.</p></div>
+          <div class="find"><span class="mono">04</span><b>Leakage-free evaluation matters</b><p>LORO splits, GroupKFold tuning, and SMOTE + scaling inside the folds keep the reported scores honest.</p></div>
+        </div>
+        <h3>Limitations</h3>
+        <ul class="ticks">
+          <li>Africa contributes only 423 records (1.9%), so its fold is small and noisy — and has just 4 Wet samples.</li>
+          <li>Predictions are compressed toward the middle (≈ 0.10–0.30 m³/m³); extreme wet and dry conditions are the hardest to get right.</li>
+          <li>A correlation of about 0.5 leaves room to improve before field deployment.</li>
+        </ul>
+        <h3>Future work</h3>
+        <ul class="ticks">
+          <li><strong>Time-series deep learning (LSTMs)</strong> to model how soil dries out between rains.</li>
+          <li><strong>A real-time API</strong> serving the ensemble to precision-agriculture dashboards.</li>
+          <li>More stations from under-represented regions to strengthen cross-continent learning.</li>
+        </ul>
+      </section>
+
+      <!-- 13 POSTER -->
+      <section class="cs-sec" id="poster">
+        <span class="cs-num mono">13 — Poster</span>
+        <h2>Project poster</h2>
+        <figure class="fig poster" data-zoom>
+          <img src="assets/soilsight/poster.jpg" alt="SoilSight AI project poster" loading="lazy" />
+          <figcaption><span class="mono">Poster</span> SoilSight AI — Cross-Region Soil Moisture Estimation using Machine Learning. Dept. of CSE, Manav Rachna University.</figcaption>
+        </figure>
+      </section>
+
+      <footer class="cs-end">
+        <a href="index.html#projects" class="btn btn-primary"><span>← Back to portfolio</span></a>
+        <a href="index.html#contact" class="btn btn-ghost"><span>Get in touch</span></a>
+      </footer>
+    </article>
+  </div>
+
+  <!-- zoom viewer -->
+  <div class="zoom" id="zoom" aria-hidden="true"><button class="zoom-close mono" aria-label="Close">Close ✕</button><img alt="" /><p class="zoom-cap"></p></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="scene.js"></script>
+  <script src="soilsight.js"></script>
+</body>
+</html>
