@@ -5,7 +5,7 @@ const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons";
 const PROFILE = {
   // Tech cards in the 3D carousel: [name, devicon path, category]. Edit freely.
   tech: [
-    ["Python", "python/python-original", "Language"], ["C++", "cplusplus/cplusplus-original", "Language"],
+    ["Python", "python/python-original", "Language"],
     ["C", "c/c-original", "Language"], ["Java", "java/java-original", "Language"],
     ["JavaScript", "javascript/javascript-original", "Language"], ["HTML5", "html5/html5-original", "Markup"],
     ["CSS3", "css3/css3-original", "Styling"], ["React", "react/react-original", "Framework"],
@@ -13,7 +13,7 @@ const PROFILE = {
     ["MySQL", "mysql/mysql-original", "Database"], ["Firebase", "firebase/firebase-original", "Backend"],
     ["Google Cloud", "googlecloud/googlecloud-original", "Cloud"], ["Git", "git/git-original", "Version control"],
     ["GitHub", "github/github-original", "Collaboration"], ["Figma", "figma/figma-original", "Design"],
-    ["VS Code", "vscode/vscode-original", "Editor"], ["Linux", "linux/linux-original", "OS"],
+    ["VS Code", "vscode/vscode-original", "Editor"],
   ],
   // Skills shown in the two drifting rows — edit to match Angel's real strengths
   skills: [
@@ -24,7 +24,6 @@ const PROFILE = {
   ],
   projects: [
     { title: "VisionX Winning Build", text: "The project that took 1st prize at VisionX, GeeksforGeeks office. Add the problem, the idea and what the team shipped.", tags: ["Hackathon", "1st Prize"], image: "assets/events/visionx-3.jpg", link: "" },
-    { title: "Project Two", text: "A short description of what this project does and why it matters.", tags: ["Web", "UI"], image: "", link: "" },
     { title: "SoilSight AI", featured: true,
       text: "Predicts topsoil moisture on continents the model has never seen — from Sentinel-1/2 satellite, rainfall, terrain and soil data. 7 regressors + ensembles, leave-one-region-out validation, best RMSE 0.0857 m³/m³.",
       tags: ["Machine Learning", "Remote Sensing", "Python"], image: "assets/soilsight/cover.jpg", link: "soilsight.html", linkText: "Read the case study →" },
@@ -191,6 +190,7 @@ function readColors() {
   try { inkRGB = hex(cs.getPropertyValue("--ink")); accentRGB = hex(cs.getPropertyValue("--accent")); } catch (e) {}
 }
 readColors();
+document.addEventListener("themechange", readColors); // cursor trail follows the light/dark switch
 
 if (finePointer && !reduced) {
   root.classList.add("has-cursor");
@@ -340,17 +340,43 @@ if (finePointer) {
    cards toward the edges tilt away slightly like a curved screen.
    Drag / flick to scroll it, hover to slow, page-scroll speeds it.
    ========================================================= */
+// official brand colours — used for each card's glow, border light and accent line
+const BRAND = {
+  "Python": "#3776AB", "C++": "#00599C", "C": "#5C6BC0", "Java": "#EA2D2E", "JavaScript": "#F7DF1E",
+  "HTML5": "#E34F26", "CSS3": "#1572B6", "React": "#61DAFB", "Node.js": "#5FA04E", "Tailwind CSS": "#06B6D4",
+  "MySQL": "#4479A1", "Firebase": "#FFCA28", "Google Cloud": "#4285F4", "Git": "#F05032", "GitHub": "#8B949E",
+  "Figma": "#A259FF", "VS Code": "#007ACC", "Linux": "#FCC624",
+};
 const cyl = $("#cyl"), cylStage = $("#cylStage");
-cyl.innerHTML = PROFILE.tech.map(([name, path, kind]) => `
-  <div class="tcard" data-name="${name}">
+const techCount = String(PROFILE.tech.length).padStart(2, "0");
+cyl.innerHTML = PROFILE.tech.map(([name, path, kind], i) => `
+  <div class="tcard" data-name="${name}" style="--brand:${BRAND[name] || "var(--accent)"};--i:${i}">
     <div class="tcard-in">
+      <span class="tc-ring"></span><span class="tc-glare"></span><span class="tc-aura"></span>
+      <span class="tc-top"><span class="mono">${String(i + 1).padStart(2, "0")} / ${techCount}</span><span class="tc-dot"></span></span>
       <span class="tc-logo"><img src="assets/tech/${path.split("/")[1]}.svg" alt="${name} logo" onerror="this.onerror=null;this.src='${DEVICON}/${path}.svg'"></span>
       <span class="tc-name">${name}</span>
       <span class="tc-kind mono">${kind}</span>
+      <span class="tc-bar"><i></i></span>
     </div>
   </div>`).join("");
 const tcards = $$(".tcard", cyl);
-const carousel = { off: 0, vel: 60, base: 60, drag: false, lastX: 0, visible: true, boost: 0, gap: 230 };
+const carousel = { off: 0, vel: 60, base: 60, drag: false, lastX: 0, visible: true, boost: 0, gap: 230, focus: null };
+
+// hovering a card tilts it toward the pointer, with a glare that follows the cursor
+if (finePointer) tcards.forEach((card) => {
+  const inner = $(".tcard-in", card);
+  card.addEventListener("pointermove", (e) => {
+    if (carousel.drag) return;
+    const r = inner.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    inner.style.setProperty("--ry", `${(px - 0.5) * 18}deg`);
+    inner.style.setProperty("--rx", `${(0.5 - py) * 18}deg`);
+    inner.style.setProperty("--mx", `${px * 100}%`);
+    inner.style.setProperty("--my", `${py * 100}%`);
+  });
+  card.addEventListener("pointerleave", () => { inner.style.setProperty("--rx", "0deg"); inner.style.setProperty("--ry", "0deg"); });
+});
 
 function layoutCarousel() { carousel.gap = (tcards[0].offsetWidth || 190) + 34; }
 layoutCarousel();
@@ -379,6 +405,7 @@ function carouselFrame(dt, scrollV) {
   }
   const total = carousel.gap * tcards.length;
   const halfW = cylStage.clientWidth / 2;
+  let closest = Infinity, focusCard = null;
   tcards.forEach((c, i) => {
     // wrap each card into [-total/2, total/2) around the centre
     let x = ((i * carousel.gap + carousel.off) % total + total) % total - total / 2;
@@ -392,7 +419,14 @@ function carouselFrame(dt, scrollV) {
     c.style.opacity = Math.max(0, 1 - Math.pow(Math.max(0, ad - 0.55), 1.4) * 1.3).toFixed(3);
     c.style.zIndex = 100 - Math.round(ad * 50);
     c.style.setProperty("--lit", Math.max(0, 1 - ad).toFixed(3));
+    if (ad < closest) { closest = ad; focusCard = c; }
   });
+  // the card nearest the centre gets the "focus" treatment (border light, shimmer, accent line)
+  if (focusCard !== carousel.focus) {
+    if (carousel.focus) carousel.focus.classList.remove("focus");
+    focusCard.classList.add("focus");
+    carousel.focus = focusCard;
+  }
 }
 
 /* ---------- skills: two big rows drifting in opposite directions ---------- */
@@ -540,7 +574,7 @@ function heroEntrance() {
   const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
   tl.add(() => window.Scene3D && Scene3D.intro(), 0)
     .to(".arch", { scaleY: 1, duration: 1.6, ease: "expo.inOut" }, 0)
-    .to(".portrait-clip", { clipPath: "inset(0% 0% 0% 0%)", duration: 1.8, ease: "expo.inOut" }, 0.35)
+    .to(".portrait-clip", { clipPath: "inset(0% 8% 0% 8%)", duration: 1.8, ease: "expo.inOut" }, 0.35)
     .to(".cutout", { y: 0, filter: "blur(0px)", duration: 2.2 }, 0.45)
     .to(".hero-orbits", { opacity: 1, scale: 1, duration: 2.2 }, 0.6)
     .to(".eyebrow", { y: 0, opacity: 1, duration: 1.2 }, 0.2)
@@ -625,7 +659,14 @@ function scrollAnimations() {
   // logos fly into their rings
   // tech pills bloom in, the sphere rises
   // carousel cards rise in, skill rows slide in from opposite sides
-  gsap.from(".tcard-in", { y: 120, opacity: 0, rotateX: -40, duration: 1.6, ease: "expo.out", stagger: 0.05, scrollTrigger: { trigger: "#cylStage", start: "top 80%" } });
+  // tech cards: fly up out of depth from the centre while the wheel spins in fast and settles
+  gsap.from(".tcard-in", {
+    y: 160, scale: 0.55, rotateX: -55, opacity: 0, filter: "blur(14px)",
+    duration: 1.7, ease: "expo.out", stagger: { each: 0.05, from: "center" },
+    clearProps: "transform,filter,opacity", // hand the transform back to the hover tilt
+    scrollTrigger: { trigger: "#cylStage", start: "top 82%", onEnter: () => { carousel.vel = 900; } },
+  });
+  gsap.from(".cyl-floor, .cyl-hint", { opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: "#cylStage", start: "top 82%" } });
   gsap.from(".sk-row", { x: (i) => (i ? 200 : -200), opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: "#skillRows", start: "top 90%" } });
 
   $$(".photo-slot").forEach(cinematicReveal);

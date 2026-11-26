@@ -29,11 +29,21 @@
 
   // ribbon settings: [colour, lines, base opacity, vertical anchor, speed, twist]
   const RIBBONS = [
-    { rgb: "205,181,154", lines: 26, alpha: 0.27, anchor: 0.62, speed: 1, twist: 1, amp: 0.16, width: 0.22, dir: 1 },
-    { rgb: "236,230,218", lines: 18, alpha: 0.15, anchor: 0.32, speed: 0.7, twist: 1.4, amp: 0.12, width: 0.16, dir: -1 },
+    { lines: 26, anchor: 0.62, speed: 1, twist: 1, amp: 0.16, width: 0.22, dir: 1 },
+    { lines: 18, anchor: 0.32, speed: 0.7, twist: 1.4, amp: 0.12, width: 0.16, dir: -1 },
   ];
+  // colours per theme: [ribbon 1, ribbon 2], their opacity, and the star colour
+  const PALETTES = {
+    noir:  { rgb: ["205,181,154", "236,230,218"], alpha: [0.27, 0.15], star: "236,230,218", starMax: 0.5 },
+    light: { rgb: ["138,104,69", "70,64,58"],     alpha: [0.30, 0.13], star: "110,96,80",   starMax: 0.35 },
+  };
+  let pal = PALETTES.noir;
+  const readTheme = () => { pal = PALETTES[document.documentElement.dataset.theme] || PALETTES.noir; };
+  readTheme();
+  new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  function drawRibbon(r, t, sc) {
+  function drawRibbon(r, idx, t, sc) {
+    const rgb = pal.rgb[idx], alpha = pal.alpha[idx];
     const steps = Math.ceil(w / 10);
     // the ribbon slowly travels up and down the screen as you scroll
     const cy = h * (r.anchor + 0.12 * Math.sin(sc * 0.0004 * r.dir));
@@ -43,17 +53,17 @@
 
     // fade at the left / right edges
     const grad = ctx.createLinearGradient(0, 0, w, 0);
-    grad.addColorStop(0, `rgba(${r.rgb},0)`);
-    grad.addColorStop(0.2, `rgba(${r.rgb},1)`);
-    grad.addColorStop(0.8, `rgba(${r.rgb},1)`);
-    grad.addColorStop(1, `rgba(${r.rgb},0)`);
+    grad.addColorStop(0, `rgba(${rgb},0)`);
+    grad.addColorStop(0.2, `rgba(${rgb},1)`);
+    grad.addColorStop(0.8, `rgba(${rgb},1)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
     ctx.strokeStyle = grad;
     ctx.lineWidth = 1;
 
     for (let i = 0; i < r.lines; i++) {
       const k = i / (r.lines - 1) - 0.5; // -0.5 … 0.5 across the ribbon
       // middle lines are brighter, outer ones softer
-      ctx.globalAlpha = r.alpha * (1 - Math.abs(k) * 1.1) * shown * (1 + energy * 0.6);
+      ctx.globalAlpha = alpha * (1 - Math.abs(k) * 1.1) * shown * (1 + energy * 0.6);
       ctx.beginPath();
       for (let s = 0; s <= steps; s++) {
         const x = (s / steps) * w;
@@ -82,12 +92,12 @@
     for (const s of stars) {
       const y = (((s.y - smoothY * s.depth) % h) + h) % h;
       const tw = reduced ? 1 : 0.6 + 0.4 * Math.sin(t * 0.001 * s.sp + s.ph);
-      ctx.fillStyle = `rgba(236,230,218,${(Math.min(0.5, s.a * tw) * shown).toFixed(3)})`;
+      ctx.fillStyle = `rgba(${pal.star},${(Math.min(pal.starMax, s.a * tw) * shown).toFixed(3)})`;
       ctx.beginPath(); ctx.arc(s.x, y, s.r, 0, Math.PI * 2); ctx.fill();
     }
 
     // silk ribbons
-    RIBBONS.forEach((r) => drawRibbon(r, time, smoothY));
+    RIBBONS.forEach((r, i) => drawRibbon(r, i, time, smoothY));
 
     requestAnimationFrame(draw);
   }
