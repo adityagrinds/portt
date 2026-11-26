@@ -23,10 +23,18 @@ const PROFILE = {
     "Community Building", "Event Management", "Technical Writing", "Collaboration", "Hackathon Strategy",
   ],
   projects: [
-    { title: "VisionX Winning Build", text: "The project that took 1st prize at VisionX, GeeksforGeeks office. Add the problem, the idea and what the team shipped.", tags: ["Hackathon", "1st Prize"], image: "assets/events/visionx-3.jpg", link: "" },
-    { title: "SoilSight AI", featured: true,
-      text: "Predicts topsoil moisture on continents the model has never seen — from Sentinel-1/2 satellite, rainfall, terrain and soil data. 7 regressors + ensembles, leave-one-region-out validation, best RMSE 0.0857 m³/m³.",
-      tags: ["Machine Learning", "Remote Sensing", "Python"], image: "assets/soilsight/cover.jpg", link: "soilsight.html", linkText: "Read the case study →" },
+    { title: "Sangyan AI", badge: "Live product", subtitle: "Multi-agent crisis intelligence",
+      text: "Three autonomous AI agents — Monitor, Analyzer and Responder — watch live earthquake and weather data, decide if a crisis is real, rate its severity and draft a response plan in real time. With a 3D globe, a live crisis map and voice reports in 10 Indian languages.",
+      tags: ["Multi-Agent AI", "React", "Three.js", "Node.js"],
+      image: "assets/projects/sangyan-ai.jpg", link: "https://sangyan-ai.vercel.app/", linkText: "Visit the live site ↗" },
+    { title: "SoilSight AI", badge: "Case study", subtitle: "Satellite soil-moisture estimation",
+      text: "Predicts topsoil moisture on continents the model has never seen, from Sentinel-1/2 satellite, rainfall, terrain and soil data. Seven regressors plus ensembles, tested with leave-one-region-out validation — best RMSE 0.0857 m³/m³.",
+      tags: ["Machine Learning", "Remote Sensing", "Python"],
+      image: "assets/soilsight/cover.jpg", link: "soilsight.html", linkText: "Read the case study →" },
+    { title: "VisionX Winning Build", badge: "1st Prize", subtitle: "Hackathon at GeeksforGeeks office",
+      text: "The project that took 1st prize at the VisionX hackathon, built by our team under the clock at the GeeksforGeeks office. Add the problem it solves, the idea and what the team shipped.",
+      tags: ["Hackathon", "Teamwork"],
+      image: "assets/events/visionx-3.jpg", link: "", event: "visionx", linkText: "View event photos →" },
   ],
   // Event photos orbit each event. Files live in assets/events/.
   events: [
@@ -107,7 +115,7 @@ function toggleMenu(open = !menuOpen) {
       .set(mnav, { visibility: "visible" })
       .to(mnav, { clipPath: "circle(150% at calc(100% - 40px) 40px)", duration: 0.9, ease: "expo.inOut" })
       .fromTo(".mnav li a", { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.05, ease: "expo.out" }, 0.35)
-      .fromTo(".mnav-foot", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6 }, 0.6);
+      .fromTo(".mnav-theme, .mnav-foot", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "expo.out" }, 0.55);
   } else {
     if (lenis && !cardOpen && !evOpen) lenis.start(); // start now so a menu link can scroll straight away
     gsap.to(mnav, { clipPath: "circle(0% at calc(100% - 40px) 40px)", duration: 0.7, ease: "expo.inOut",
@@ -121,20 +129,21 @@ addEventListener("resize", () => { if (menuOpen && innerWidth > 960) toggleMenu(
 const placeholder = (label) => `<div class="ph mono"><span>${label}</span></div>`;
 
 /* ---------- projects ---------- */
-// featured projects (with a full case study) are shown first
-const projectsSorted = [...PROFILE.projects].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-$("#projectGrid").innerHTML = projectsSorted.map((p) => {
+// every project uses the same card, so all cards are the same size
+$("#projectGrid").innerHTML = PROFILE.projects.map((p) => {
   const external = /^https?:/.test(p.link || "");
   const linkAttrs = external ? ' target="_blank" rel="noopener"' : "";
   return `
-  <article class="project glass tilt ${p.featured ? "featured" : ""}" ${p.link ? `data-href="${p.link}"` : ""}>
+  <article class="project glass tilt" ${p.link ? `data-href="${p.link}"` : ""}>
     <div class="photo-slot" data-label="${p.title}" ${p.image ? `data-src="${p.image}"` : ""}></div>
     <div class="project-body">
-      ${p.featured ? `<span class="feat-badge mono">★ Featured · Case study</span>` : ""}
-      <div class="tags">${p.tags.map((t) => `<span class="mono">${t}</span>`).join("")}</div>
+      ${p.badge ? `<span class="feat-badge mono">${p.badge}</span>` : ""}
       <h3>${p.title}</h3>
+      ${p.subtitle ? `<span class="proj-sub">${p.subtitle}</span>` : ""}
       <p>${p.text}</p>
-      ${p.link ? `<a class="link-btn mono" href="${p.link}"${linkAttrs}>${p.linkText || "View project →"}</a>` : ""}
+      <div class="tags">${p.tags.map((t) => `<span class="mono">${t}</span>`).join("")}</div>
+      ${p.link ? `<a class="link-btn mono" href="${p.link}"${linkAttrs}>${p.linkText || "View project →"}</a>`
+        : p.event ? `<button class="link-btn mono" type="button" data-open-event="${p.event}">${p.linkText || "View photos →"}</button>` : ""}
     </div>
   </article>`;
 }).join("");
