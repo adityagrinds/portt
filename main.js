@@ -350,7 +350,7 @@ const BRAND = {
 const cyl = $("#cyl"), cylStage = $("#cylStage");
 const techCount = String(PROFILE.tech.length).padStart(2, "0");
 cyl.innerHTML = PROFILE.tech.map(([name, path, kind], i) => `
-  <div class="tcard" data-name="${name}" style="--brand:${BRAND[name] || "var(--accent)"};--i:${i}">
+  <div class="tcard" data-name="${name}" tabindex="0" role="button" aria-label="${name} — ${kind}" style="--brand:${BRAND[name] || "var(--accent)"};--i:${i}">
     <div class="tcard-in">
       <span class="tc-ring"></span><span class="tc-glare"></span><span class="tc-aura"></span>
       <span class="tc-top"><span class="mono">${String(i + 1).padStart(2, "0")} / ${techCount}</span><span class="tc-dot"></span></span>
@@ -383,28 +383,104 @@ layoutCarousel();
 addEventListener("resize", layoutCarousel);
 new IntersectionObserver(([en]) => (carousel.visible = en.isIntersecting)).observe(cylStage);
 
-cylStage.addEventListener("pointerdown", (e) => { carousel.drag = true; carousel.lastX = e.clientX; cylStage.setPointerCapture(e.pointerId); cylStage.classList.add("dragging"); });
+// drag / flick to spin · a quick tap (or click) on a card glides it to the centre
+cylStage.addEventListener("pointerdown", (e) => {
+  carousel.drag = true; carousel.moved = 0; carousel.lastX = e.clientX; carousel.downAt = performance.now();
+  carousel.downCard = e.target.closest(".tcard");
+  cylStage.setPointerCapture(e.pointerId); cylStage.classList.add("dragging");
+  if (carousel.snapTween) { carousel.snapTween.kill(); carousel.snapTween = null; }
+});
 cylStage.addEventListener("pointermove", (e) => {
   if (!carousel.drag) return;
   const dx = e.clientX - carousel.lastX; carousel.lastX = e.clientX;
+  carousel.moved += Math.abs(dx);
   carousel.off += dx;
   carousel.vel = dx * 50; // flick momentum
 });
-const endDrag = () => { carousel.drag = false; cylStage.classList.remove("dragging"); };
+const endDrag = () => {
+  if (!carousel.drag) return;
+  carousel.drag = false; cylStage.classList.remove("dragging");
+  const isTap = carousel.moved < 6 && performance.now() - carousel.downAt < 450;
+  if (isTap && carousel.downCard) bringToCentre(carousel.downCard);
+};
 cylStage.addEventListener("pointerup", endDrag);
 cylStage.addEventListener("pointercancel", endDrag);
 cylStage.addEventListener("pointerenter", () => (carousel.base = 18));
 cylStage.addEventListener("pointerleave", () => (carousel.base = 60));
+cylStage.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.classList.contains("tcard")) bringToCentre(e.target);
+});
+
+function cardX(i) {
+  const total = carousel.gap * tcards.length;
+  return ((i * carousel.gap + carousel.off) % total + total) % total - total / 2;
+}
+// glide a card to the centre, then celebrate it: 3D logo spin + colour ripple
+function bringToCentre(card) {
+  const i = tcards.indexOf(card), dx = -cardX(i);
+  carousel.vel = 0; carousel.hold = true;
+  const proxy = { v: 0 };
+  carousel.snapTween = gsap.to(proxy, {
+    v: dx, duration: Math.min(1.4, 0.6 + Math.abs(dx) / 900), ease: "expo.inOut",
+    onUpdate() { carousel.off += proxy.v - (proxy.last || 0); proxy.last = proxy.v; },
+    onComplete() {
+      carousel.snapTween = null;
+      celebrate(card);
+      gsap.delayedCall(1.8, () => { carousel.hold = false; }); // pause on it, then cruise again
+    },
+  });
+}
+function celebrate(card) {
+  const inner = $(".tcard-in", card);
+  gsap.fromTo($(".tc-logo img", card), { rotateY: 0 }, { rotateY: 360, duration: 1.2, ease: "expo.inOut" });
+  const ripple = document.createElement("span");
+  ripple.className = "tc-ripple";
+  inner.appendChild(ripple);
+  gsap.fromTo(ripple, { scale: 0, opacity: 0.55 }, { scale: 3.2, opacity: 0, duration: 1.1, ease: "power2.out", onComplete: () => ripple.remove() });
+}
+
+// tiny brand-coloured sparks when a new card takes the focus
+function sparkBurst(card) {
+  if (reduced) return;
+  for (let k = 0; k < 10; k++) {
+    const s = document.createElement("i");
+    s.className = "tc-spark";
+    card.appendChild(s);
+    const a = (k / 10) * Math.PI * 2 + Math.random() * 0.5, d = 90 + Math.random() * 70;
+    gsap.fromTo(s, { x: 0, y: -20, scale: 1, opacity: 1 },
+      { x: Math.cos(a) * d, y: -20 + Math.sin(a) * d * 0.8, scale: 0, opacity: 0, duration: 0.9 + Math.random() * 0.4, ease: "power3.out", onComplete: () => s.remove() });
+  }
+}
+
+// giant editorial name of the focused tech, behind the cards
+const bigName = $("#cylName");
+function showBigName(name) {
+  if (!bigName) return;
+  const old = $$(".cn-word", bigName);
+  old.forEach((w) => gsap.to($$("span", w), { yPercent: -110, opacity: 0, duration: 0.5, stagger: 0.02, ease: "power3.in", onComplete: () => w.remove() }));
+  const word = document.createElement("div");
+  word.className = "cn-word";
+  word.innerHTML = [...name].map((ch) => `<span>${ch === " " ? "&nbsp;" : ch}</span>`).join("");
+  bigName.appendChild(word);
+  gsap.fromTo($$("span", word), { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, stagger: 0.035, ease: "expo.out", delay: 0.15 });
+}
+
+function onFocusChange(card) {
+  cylStage.style.setProperty("--stage-brand", getComputedStyle(card).getPropertyValue("--brand").trim());
+  showBigName(card.dataset.name);
+  sparkBurst(card);
+}
 
 function carouselFrame(dt, scrollV) {
   if (!carousel.visible) return;
   carousel.boost += (Math.min(Math.abs(scrollV) * 4, 260) - carousel.boost) * 0.08;
-  if (!carousel.drag) {
-    carousel.vel += (carousel.base - carousel.vel) * 0.04;
-    carousel.off += (carousel.vel + carousel.boost) * dt; // positive = moving left → right
+  if (!carousel.drag && !carousel.snapTween) {
+    const target = carousel.hold ? 0 : carousel.base;
+    carousel.vel += (target - carousel.vel) * 0.04;
+    carousel.off += (carousel.vel + (carousel.hold ? 0 : carousel.boost)) * dt; // positive = moving left → right
   }
   const total = carousel.gap * tcards.length;
-  const halfW = cylStage.clientWidth / 2;
+  const halfW = Math.max(cylStage.clientWidth / 2, carousel.gap * 1.6); // phones: keep neighbours visible
   let closest = Infinity, focusCard = null;
   tcards.forEach((c, i) => {
     // wrap each card into [-total/2, total/2) around the centre
@@ -426,6 +502,7 @@ function carouselFrame(dt, scrollV) {
     if (carousel.focus) carousel.focus.classList.remove("focus");
     focusCard.classList.add("focus");
     carousel.focus = focusCard;
+    onFocusChange(focusCard);
   }
 }
 
@@ -477,7 +554,7 @@ function eventsFrame(dt) {
     if (!o.visible) return;
     o.speed += (o.target - o.speed) * 0.05;
     o.a += o.speed * dt;
-    const w = o.el.clientWidth, rx = w * 0.42, ry = w * 0.2, n = o.photos.length;
+    const w = o.el.clientWidth, rx = w * (w < 520 ? 0.34 : 0.42), ry = w * 0.2, n = o.photos.length; // phones: keep photos on screen
     o.photos.forEach((ph, i) => {
       const ang = o.a + (i / n) * Math.PI * 2;
       const depth = (Math.sin(ang) + 1) / 2; // 0 back … 1 front
@@ -666,7 +743,12 @@ function scrollAnimations() {
     clearProps: "transform,filter,opacity", // hand the transform back to the hover tilt
     scrollTrigger: { trigger: "#cylStage", start: "top 82%", onEnter: () => { carousel.vel = 900; } },
   });
-  gsap.from(".cyl-floor, .cyl-hint", { opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: "#cylStage", start: "top 82%" } });
+  gsap.from(".cyl-floor, .cyl-hint, .cyl-name", { opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: "#cylStage", start: "top 82%" } });
+  // the whole wheel tilts in 3D as you scroll past it
+  if (!reduced) gsap.fromTo(".cyl", { rotateX: 14, y: 34 }, {
+    rotateX: -7, y: -24, ease: "none",
+    scrollTrigger: { trigger: "#cylStage", start: "top bottom", end: "bottom top", scrub: 0.8 },
+  });
   gsap.from(".sk-row", { x: (i) => (i ? 200 : -200), opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: "#skillRows", start: "top 90%" } });
 
   $$(".photo-slot").forEach(cinematicReveal);

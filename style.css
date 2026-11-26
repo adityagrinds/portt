@@ -259,7 +259,7 @@ main { position: relative; z-index: 2; }
   background: radial-gradient(ellipse at center, rgba(205,181,154,.16), transparent 70%); filter: blur(8px);
 }
 .cyl-stage::before { /* soft spotlight falling on the focused card */
-  content: ""; position: absolute; left: 50%; top: -120px; width: 900px; height: 640px; transform: translateX(-50%); pointer-events: none;
+  content: ""; position: absolute; left: 50%; top: 0; width: 900px; height: 480px; transform: translateX(-50%); pointer-events: none;
   background: radial-gradient(closest-side, rgba(255, 236, 205, .085), transparent);
 }
 .tcard {
@@ -345,6 +345,45 @@ main { position: relative; z-index: 2; }
 .cyl-stage.dragging .tcard-in { transition: none; }
 .cyl-hint { text-align: center; color: var(--ink-soft); margin: 6px 0 0; }
 
+/* stage light that smoothly takes on the focused tech's brand colour */
+@property --stage-brand { syntax: "<color>"; inherits: true; initial-value: #cdb59a; }
+.cyl-stage { transition: --stage-brand 1s ease; }
+.cyl-stage::after {
+  content: ""; position: absolute; left: 50%; top: 40%; width: min(760px, 120vw); height: 360px; transform: translate(-50%, -50%);
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--stage-brand) 20%, transparent), transparent);
+}
+[data-theme="light"] .cyl-stage::after { background: radial-gradient(closest-side, color-mix(in srgb, var(--stage-brand) 16%, transparent), transparent); }
+.cyl { z-index: 1; }
+
+/* giant editorial name of the focused tech, behind the cards */
+.cyl-name {
+  position: absolute; left: 0; right: 0; top: 40%; transform: translateY(-50%); z-index: 0;
+  display: grid; place-items: center; pointer-events: none; overflow: hidden;
+  height: clamp(110px, 19vw, 270px);
+}
+.cn-word {
+  grid-area: 1 / 1; display: flex; white-space: nowrap;
+  font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400;
+  font-size: clamp(96px, 17vw, 250px); line-height: 1; letter-spacing: -.03em;
+  color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--stage-brand) 45%, transparent);
+}
+.cn-word span { display: inline-block; will-change: transform; }
+[data-theme="light"] .cn-word { -webkit-text-stroke: 1px color-mix(in srgb, var(--stage-brand) 55%, transparent); }
+
+/* tap / click celebration */
+.tc-ripple {
+  position: absolute; left: 50%; top: 40%; width: 160px; height: 160px; margin: -80px 0 0 -80px; z-index: 0;
+  border-radius: 50%; pointer-events: none; background: radial-gradient(circle, var(--brand), transparent 70%);
+}
+.tc-logo img { transform-style: preserve-3d; backface-visibility: visible; }
+.tc-spark {
+  position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; z-index: 5;
+  border-radius: 50%; background: var(--brand); box-shadow: 0 0 10px var(--brand); pointer-events: none;
+}
+.tcard { cursor: pointer; outline: none; }
+.tcard:focus-visible .tcard-in { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand); }
+
 /* skills: two large rows drifting in opposite directions */
 .skill-rows { width: 100vw; margin-left: calc(50% - 50vw); margin-top: clamp(50px, 8vw, 90px); display: grid; gap: 6px; }
 .sk-row { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
@@ -359,7 +398,12 @@ main { position: relative; z-index: 2; }
 @keyframes skRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 @keyframes skLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (max-width: 680px) {
-  .cyl-stage { height: 380px; }
+  .cyl-stage { height: 330px; }
+  .cyl { top: 43%; }
+  .cyl-name { top: 43%; height: 110px; }
+  .cn-word { font-size: 92px; }
+  .cyl-stage::after { height: 260px; top: 43%; }
+  .cyl-stage::before { width: 420px; height: 330px; top: 0; }
   .tcard { width: 158px; height: 198px; }
   .tc-logo { width: 80px; height: 80px; border-radius: 22px; }
   .tc-logo::after { border-radius: 22px 22px 60% 60% / 22px 22px 30% 30%; }
